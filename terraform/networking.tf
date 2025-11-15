@@ -1,7 +1,3 @@
-# ----------
-# Networking
-# ----------
-
 # VPC
 resource "aws_vpc" "main" {
   cidr_block       = var.main_cidr
@@ -24,19 +20,9 @@ resource "aws_internet_gateway" "igw" {
   }
 }
 
-
-# EIP for NAT
-resource "aws_eip" "nat" {
-  domain = "vpc"
-
-  tags = {
-    Name = "main-nat-eip"
-  }
-}
-
 # NAT gateway
 resource "aws_nat_gateway" "nat_gw" {
-  subnet_id     = aws_subnet.public_subnets["main"].id
+  subnet_id     = aws_subnet.s["public-1"].id
   allocation_id = aws_eip.nat.id
   depends_on    = [aws_internet_gateway.igw]
 
@@ -45,40 +31,41 @@ resource "aws_nat_gateway" "nat_gw" {
   }
 }
 
+# EIP for NAT
+# (required for a public nat)
+resource "aws_eip" "nat" {
+  domain = "vpc"
+  tags = {
+    Name = "main-nat-eip"
+  }
+}
 
 
-# Public subnet(s)
-resource "aws_subnet" "public_subnets" {
-  for_each = var.public_subnets
+# Subnets 
+# -------
+resource "random_shuffle" "az" {
+  input        = data.aws_availability_zones.available.names
+  result_count = var.az_count
+  seed         = var.aws_region
+}
+
+resource "aws_subnet" "s" {
+  for_each = local.subnets
 
   vpc_id                  = aws_vpc.main.id
-  cidr_block              = each.value.cidr
-  availability_zone       = each.value.az
-  map_public_ip_on_launch = true
+  cidr_block              = each.value
+  availability_zone       = element(random_shuffle.az.result, index(keys(local.subnets), each.key))
+  map_public_ip_on_launch = startswith(each.key, "public")
 
   tags = {
-    Name = each.value.name
+    Name = "subnet-${each.key}"
   }
 }
 
-# Private subnet(s)
-resource "aws_subnet" "private_subnets" {
-  for_each = var.private_subnets
 
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = each.value.cidr
-  availability_zone = each.value.az
-
-  tags = {
-    Name = each.value.name
-  }
-}
-
-# Routing
-# -------
-
-# rt for public subnets
-resource "aws_route_table" "public_subnet_rt" {
+# Route Table for public subnets
+# ------------------------------
+resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
 
   route {
@@ -90,15 +77,10 @@ resource "aws_route_table" "public_subnet_rt" {
     Name = "public-subnet-rt"
   }
 }
-resource "aws_route_table_association" "public_subnet" {
-  for_each = aws_subnet.public_subnets
 
-  subnet_id      = each.value.id
-  route_table_id = aws_route_table.public_subnet_rt.id
-}
-
-# rt for private subnets 
-resource "aws_route_table" "private_subnet_rt" {
+# Route Table for private subnets 
+# -------------------------------
+resource "aws_route_table" "private" {
   vpc_id = aws_vpc.main.id
 
   # Internet bound traffic through the nat gw
@@ -111,9 +93,11 @@ resource "aws_route_table" "private_subnet_rt" {
     Name = "private-subnet-rt"
   }
 } 
-resource "aws_route_table_association" "private_subnet" {
-  for_each = aws_subnet.private_subnets
 
+# Route table associations
+resource "aws_route_table_association" "rta" {
+  for_each = aws_subnet.s
+  
   subnet_id      = each.value.id
-  route_table_id = aws_route_table.private_subnet_rt.id
+  route_table_id = startswith(each.key, "public") ? aws_route_table.public.id : (startswith(each.key, "private") ? aws_route_table.private.id : "")
 }

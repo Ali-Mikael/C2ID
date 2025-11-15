@@ -1,119 +1,72 @@
+# Subnets
+# ------
 locals {
-  # Port values to be used in NACLs & SGs etc..
+  subnets = {
+    public-1       = cidrsubnet(var.main_cidr, 8, 1)
+    private-web-1  = cidrsubnet(var.main_cidr, 8, 3)
+    private-web-2  = cidrsubnet(var.main_cidr, 8, 4)
+    private-app-1  = cidrsubnet(var.main_cidr, 8, 5)
+    private-app-2  = cidrsubnet(var.main_cidr, 8, 6)
+    private-data-1 = cidrsubnet(var.main_cidr, 8, 7)
+    private-data-2 = cidrsubnet(var.main_cidr, 8, 8)
+  }
+}
+
+# Port values
+# -----------
+locals {
   port = {
+    ssh             = 22
     http            = 80
     https           = 443
-    ssh             = 22
+    db              = 3306
     ephemeral_start = 1024
     ephemeral_end   = 65535
-    db              = 3306
   }
 }
 
-
-# NACL rules
-# ----------
+# NACL
+# ----
 locals {
-  nacl_rules = {
-    # Public subnet NACL rules
-    public = {
-      ingress = [
-        { rule_no = 100, description = "Allow HTTP into the public subnet", protocol = "tcp", rule_action = "allow", cidr_block = "0.0.0.0/0", from_port = local.port.http, to_port = local.port.http },
-        { rule_no = 110, description = "Allow HTTPS into the public subnet", protocol = "tcp", rule_action = "allow", cidr_block = "0.0.0.0/0", from_port = local.port.https, to_port = local.port.https },
-        { rule_no = 120, description = "Allow SSH into public subnet", protocol = "tcp", rule_action = "allow", cidr_block = "0.0.0.0/0", from_port = local.port.ssh, to_port = local.port.ssh }
-      ]
-      egress = [
-        { rule_no = 100, description = "Allow all outbound", protocol = "-1", rule_action = "allow", cidr_block = "0.0.0.0/0", from_port = 0, to_port = 0 }
-      ]
-    }
-    # Private subnets NACL rules
-    private = {
-      ingress = [
-        { rule_no = 100, description = "Allow HTTP from public subnet", protocol = "tcp", rule_action = "allow", cidr_block = var.public_subnets["main"].cidr, from_port = local.port.http, to_port = local.port.http },
-        { rule_no = 110, description = "Allow HTTPS from public subnet", protocol = "tcp", rule_action = "allow", cidr_block = var.public_subnets["main"].cidr, from_port = local.port.https, to_port = local.port.https },
-        { rule_no = 120, description = "Allow SSH from public subnet", protocol = "tcp", rule_action = "allow", cidr_block = var.public_subnets["main"].cidr, from_port = local.port.ssh, to_port = local.port.ssh }
-      ]
-      egress = [
-        { rule_no = 100, description = "Allow all outgoing traffic from private subnets", protocol = "-1", rule_action = "allow", cidr_block = var.main_cidr, from_port = 0, to_port = 0 }
-      ]
-    }
+  pub_nacl_ingress = {
+    allow_ssh   = local.port.ssh
+    allow_http  = local.port.https
+    allow_https = local.port.ssh
   }
 }
-
 
 # Security groups
 # --------------
 locals {
+  ip_all = "0.0.0.0/0"
+
   security_groups = {
-    # Instance SG 
+
     instance = {
-      ingress = [
-        { from_port = local.port.http, to_port = local.port.http, ip_protocol = "tcp", cidr_ipv4 = "0.0.0.0/0" },
-        { from_port = local.port.https, to_port = local.port.https, ip_protocol = "tcp", cidr_ipv4 = "0.0.0.0/0" }
-      ]
-      egress = [
-        { from_port = 0, to_port = 0, ip_protocol = "-1", cidr_ipv4 = "0.0.0.0/0" }
-      ]
+      allow_http  = { port = local.port.http, cidr_ipv4 = local.ip_all }
+      allow_https = { port = local.port.https, cidr_ipv4 = local.ip_all }
     }
+
     # Admin SG to attach to an instance to enable ssh access
     admin = {
-      ingress = [
-        { from_port = local.port.ssh, to_port = local.port.ssh, ip_protocol = "tcp", cidr_ipv4 = "0.0.0.0/0" }
-      ]
-      egress = [
-        { from_port = 0, to_port = 0, ip_protocol = "-1", cidr_ipv4 = "0.0.0.0/0" }
-      ]
+      allow_ssh = { port = local.port.ssh, cidr_ipv4 = local.ip_all }
     }
-    # Web server SG
+
     webserver = {
-      ingress = [
-        { from_port = local.port.http, to_port = local.port.http, ip_protocol = "tcp", cidr_ipv4 = var.main_cidr },
-        { from_port = local.port.https, to_port = local.port.https, ip_protocol = "tcp", cidr_ipv4 = var.main_cidr }
-      ]
-      egress = [
-        { from_port = 0, to_port = 0, ip_protocol = "-1", cidr_ipv4 = "0.0.0.0/0" }
-      ]
+      allow_http  = { port = local.port.http, cidr_ipv4 = var.main_cidr },
+      allow_https = { port = local.port.https, cidr_ipv4 = var.main_cidr }
     }
-    # Database server SG
+
     dbserver = {
-      ingress = [
-        { from_port = local.port.db, to_port = local.port.db, ip_protocol = "tcp", cidr_ipv4 = var.main_cidr }
-      ]
-      egress = [
-        { from_port = 0, to_port = 0, ip_protocol = "-1", cidr_ipv4 = "0.0.0.0/0" }
-      ]
+      allow_db = { port = local.port.db, cidr_ipv4 = var.main_cidr }
     }
-    # Application Load Balancer SG
+
     alb = {
-      ingress = [
-        { from_port = local.port.http, to_port = local.port.http, ip_protocol = "tcp", cidr_ipv4 = "0.0.0.0/0" },
-        { from_port = local.port.https, to_port = local.port.https, ip_protocol = "tcp", cidr_ipv4 = "0.0.0.0/0" }
-      ]
-      egress = [
-        { from_port = 0, to_port = 0, ip_protocol = "-1", cidr_ipv4 = "0.0.0.0/0" }
-      ]
+      allow_http  = { port = local.port.http, cidr_ipv4 = local.ip_all },
+      allow_https = { port = local.port.https, cidr_ipv4 = local.ip_all }
     }
   }
-
-  # Flattening the SGs so that they can be used to dynamically create rules
-  # Pre-processing it like this simplifies:
-  #    resource creation, readability & maintainability
-  sg_rules_flattened = flatten([
-    for sg_name, sg_content in local.security_groups : [
-      for direction, rules in sg_content : [
-        for rule in rules : {
-          sg_name     = sg_name
-          direction   = direction
-          from_port   = rule.from_port
-          to_port     = rule.to_port
-          ip_protocol = rule.ip_protocol
-          cidr_ipv4   = rule.cidr_ipv4
-        }
-      ]
-    ]
-  ])
 }
-
 
 # Public key
 # ----------

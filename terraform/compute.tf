@@ -1,11 +1,13 @@
 # Instances
 # ---------
 
+# Bastion host
 resource "aws_instance" "bastion_host" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = var.instance_type
-  subnet_id     = aws_subnet.public_subnets["main"].id
+  subnet_id     = aws_subnet.s["public-1"].id
   key_name      = aws_key_pair.bastion_host.key_name
+  
   vpc_security_group_ids = [
     aws_security_group.sg["instance"].id,
     aws_security_group.sg["admin"].id
