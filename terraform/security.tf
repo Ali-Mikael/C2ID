@@ -1,8 +1,8 @@
 # NACL
-# -----
+# ----
 resource "aws_network_acl" "nacl" {
   vpc_id     = aws_vpc.main.id
-  subnet_ids = [aws_subnet.s["public-1"]]
+  subnet_ids = [aws_subnet.s["public-1"].id]
 
   dynamic "ingress" {
     for_each = local.pub_nacl_ingress
@@ -46,33 +46,20 @@ resource "aws_security_group" "sg" {
 
 # Creating & associating SG rules
 # ------------------------------->
-locals {
-  # Preparing SGs for rule creation
-  sg_rules = flatten([
-    for sg, content in local.security_groups : [
-      for port, ip in content : {
-        sg   = sg
-        port = port
-        ip   = ip
-      }
-    ]
-  ])
-}
 
 # Ingress rules
 resource "aws_vpc_security_group_ingress_rule" "ingress_rules" {
   for_each = tomap({
-    for rule in local.sg_rules : "${rule.sg}-${rule.port}" => rule
+    for rule in local.sg_rules : "${rule.sg}-${rule.from_port}" => rule
   })
 
   security_group_id = aws_security_group.sg[each.value.sg].id
-  from_port         = each.value.port
-  to_port           = each.value.port
+  from_port         = each.value.from_port
+  to_port           = each.value.to_port
   ip_protocol       = "tcp"
   cidr_ipv4         = each.value.ip
   depends_on        = [aws_security_group.sg]
 }
-
 
 # Egress rules
 # (allow all outgoing by default)

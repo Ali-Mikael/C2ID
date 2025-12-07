@@ -30,7 +30,6 @@ resource "aws_nat_gateway" "nat_gw" {
     Name = "main-nat-gw"
   }
 }
-
 # EIP for NAT
 # (required for a public nat)
 resource "aws_eip" "nat" {
@@ -85,19 +84,45 @@ resource "aws_route_table" "private" {
 
   # Internet bound traffic through the nat gw
   route {
-    cidr_block = "0.0.0.0/0"
+    cidr_block     = "0.0.0.0/0"
     nat_gateway_id = aws_nat_gateway.nat_gw.id
   }
 
   tags = {
     Name = "private-subnet-rt"
   }
-} 
+}
 
 # Route table associations
 resource "aws_route_table_association" "rta" {
   for_each = aws_subnet.s
-  
+
   subnet_id      = each.value.id
   route_table_id = startswith(each.key, "public") ? aws_route_table.public.id : (startswith(each.key, "private") ? aws_route_table.private.id : "")
 }
+
+# # ALB
+# resource "aws_lb" "web_alb" {
+#   name               = "web-alb"
+#   internal           = false
+#   load_balancer_type = "application"
+#   security_groups    = [aws_security_group.sg["alb"].id]
+
+#   subnet_mapping {
+#     subnet_id     = aws_subnet.s["public-1"].id
+#     allocation_id = aws_eip.alb.id
+#   }
+
+#   tags = {
+#     Name     = "web-tier-alb"
+#     Position = "public-facing"
+#   }
+# }
+# # EIP for ALB
+# resource "aws_eip" "alb" {
+#   domain = "vpc"
+
+#   tags = {
+#     Name = "web-alb-eip"
+#   }
+# }
