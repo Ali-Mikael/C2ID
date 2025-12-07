@@ -73,6 +73,7 @@ resource "aws_vpc_security_group_ingress_rule" "ingress_rules" {
   depends_on        = [aws_security_group.sg]
 }
 
+
 # Egress rules
 # (allow all outgoing by default)
 resource "aws_vpc_security_group_egress_rule" "egress_rules" {

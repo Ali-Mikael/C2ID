@@ -43,8 +43,8 @@ locals {
   security_groups = {
 
     instance = {
-      allow_http  = { port = local.port.http, cidr_ipv4 = local.ip_all }
-      allow_https = { port = local.port.https, cidr_ipv4 = local.ip_all }
+      allow_http      = { port = local.port.http, cidr_ipv4 = local.ip_all }
+      allow_https     = { port = local.port.https, cidr_ipv4 = local.ip_all }
     }
 
     # Admin SG to attach to an instance to enable ssh access
