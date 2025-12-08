@@ -15,6 +15,15 @@ resource "aws_network_acl" "nacl" {
       cidr_block = "0.0.0.0/0"
     }
   }
+  # Ephemeral ports open so that we can download updates etc..
+  ingress {
+    protocol   = "tcp"
+    rule_no    = 125
+    action     = "allow"
+    cidr_block = "0.0.0.0/0"
+    from_port  = 1024
+    to_port    = 65535
+  }
   egress {
     protocol   = "-1"
     rule_no    = 100
@@ -58,7 +67,6 @@ resource "aws_vpc_security_group_ingress_rule" "ingress_rules" {
   to_port           = each.value.to_port
   ip_protocol       = "tcp"
   cidr_ipv4         = each.value.ip
-  depends_on        = [aws_security_group.sg]
 }
 
 # Egress rules
