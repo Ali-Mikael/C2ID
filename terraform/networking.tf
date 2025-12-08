@@ -115,7 +115,7 @@ resource "aws_route_table_association" "rta" {
 
 #   tags = {
 #     Name     = "web-tier-alb"
-#     Position = "public-facing"
+#     Endpoint = "public-facing"
 #   }
 # }
 # # EIP for ALB
