@@ -22,9 +22,22 @@ variable "instance_type" {
   default = "t2.micro"
 }
 
-# SSH key name
-variable "key_name" {
+# RDS instance class
+variable "rds_instance_class" {
+  type = string
+  default = "db.t3.micro"
+}
+
+# SSH key name for bastion host
+variable "bastion_key_name" {
   type = string
   description = "SSH key name"
   default = "bh-key"
+}
+
+# SSH key name for instances
+variable "instance_key_name" {
+  type = string
+  description = "SSH key name for instances"
+  default = "instance-key"
 }
