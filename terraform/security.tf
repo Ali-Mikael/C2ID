@@ -2,7 +2,7 @@
 # ----
 resource "aws_network_acl" "nacl" {
   vpc_id     = aws_vpc.main.id
-  subnet_ids = [aws_subnet.s["public-1"].id]
+  subnet_ids = [aws_subnet.s["public-subnet-1"].id]
 
   dynamic "ingress" {
     for_each = local.pub_nacl_ingress

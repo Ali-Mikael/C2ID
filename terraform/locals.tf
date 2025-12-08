@@ -2,13 +2,13 @@
 # ------
 locals {
   subnets = {
-    public-1       = cidrsubnet(var.main_cidr, 8, 1)
-    private-web-1  = cidrsubnet(var.main_cidr, 8, 3)
-    private-web-2  = cidrsubnet(var.main_cidr, 8, 4)
-    private-app-1  = cidrsubnet(var.main_cidr, 8, 5)
-    private-app-2  = cidrsubnet(var.main_cidr, 8, 6)
-    private-data-1 = cidrsubnet(var.main_cidr, 8, 7)
-    private-data-2 = cidrsubnet(var.main_cidr, 8, 8)
+    public-subnet-1       = cidrsubnet(var.main_cidr, 8, 1)
+    private-web-subnet-1  = cidrsubnet(var.main_cidr, 8, 3)
+    private-web-subnet-2  = cidrsubnet(var.main_cidr, 8, 4)
+    private-app-subnet-1  = cidrsubnet(var.main_cidr, 8, 5)
+    private-app-subnet-2  = cidrsubnet(var.main_cidr, 8, 6)
+    private-data-subnet-1 = cidrsubnet(var.main_cidr, 8, 7)
+    private-data-subnet-2 = cidrsubnet(var.main_cidr, 8, 8)
   }
 }
 
@@ -72,11 +72,11 @@ locals {
   # Preparing SGs for rule creation
   sg_rules = flatten([
     for sg, rules in local.security_groups : [
-      for action, rule in rules : {
+      for rule, value in rules : {
         sg        = sg
-        from_port = rule.from_port
-        to_port   = rule.to_port
-        ip        = rule.cidr_ipv4
+        from_port = value.from_port
+        to_port   = value.to_port
+        ip        = value.cidr_ipv4
       }
     ]
   ])

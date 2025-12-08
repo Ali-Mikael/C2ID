@@ -22,7 +22,7 @@ resource "aws_internet_gateway" "igw" {
 
 # NAT gateway
 resource "aws_nat_gateway" "nat_gw" {
-  subnet_id     = aws_subnet.s["public-1"].id
+  subnet_id     = aws_subnet.s["public-subnet-1"].id
   allocation_id = aws_eip.nat.id
   depends_on    = [aws_internet_gateway.igw]
 
@@ -57,7 +57,7 @@ resource "aws_subnet" "s" {
   map_public_ip_on_launch = startswith(each.key, "public")
 
   tags = {
-    Name = "subnet-${each.key}"
+    Name = "${each.key}"
   }
 }
 
@@ -109,7 +109,7 @@ resource "aws_route_table_association" "rta" {
 #   security_groups    = [aws_security_group.sg["alb"].id]
 
 #   subnet_mapping {
-#     subnet_id     = aws_subnet.s["public-1"].id
+#     subnet_id     = aws_subnet.s["public-subnet-1"].id
 #     allocation_id = aws_eip.alb.id
 #   }
 
