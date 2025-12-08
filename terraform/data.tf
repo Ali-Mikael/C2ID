@@ -17,3 +17,12 @@ data "aws_ami" "ubuntu" {
     values = ["ebs"]
   }
 }
+
+data "aws_iam_role" "lab_role" {
+  name = "LabRole"
+}
+
+data "aws_rds_engine_version" "postgres" {
+  engine = "postgres"
+  latest = true
+}
