@@ -19,7 +19,7 @@ locals {
     ssh             = 22
     http            = 80
     https           = 443
-    db              = 3306
+    postgres        = 5432
     ephemeral_start = 1024
     ephemeral_end   = 65535
   }
@@ -45,7 +45,6 @@ locals {
     instance = {
       allow_http     = { from_port = local.port.http, to_port = local.port.http, cidr_ipv4 = local.ip_all }
       allow_https    = { from_port = local.port.https, to_port = local.port.https, cidr_ipv4 = local.ip_all }
-      allow_ephemeral = { from_port = local.port.ephemeral_start, to_port = local.port.ephemeral_end, cidr_ipv4 = local.ip_all }
     }
 
     # Admin SG to attach to an instance to enable ssh access
@@ -59,7 +58,7 @@ locals {
     }
 
     dbserver = {
-      allow_db = { from_port = local.port.db, to_port = local.port.db, cidr_ipv4 = var.main_cidr }
+      allow_db = { from_port = local.port.postgres, to_port = local.port.postgres, cidr_ipv4 = var.main_cidr }
     }
 
     alb = {
@@ -85,7 +84,9 @@ locals {
 # Public key
 # ----------
 locals {
-  public_key = file("~/.ssh/bastion_key.pub")
+  bastion_pub_key = file("~/.ssh/bastion_key.pub")
+
+  instance_pub_key = file("~/.ssh/vm1.pub")
 }
 
 # Buckets
