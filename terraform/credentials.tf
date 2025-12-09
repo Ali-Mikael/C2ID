@@ -3,7 +3,7 @@
 
 # Admin user
 resource "aws_secretsmanager_secret" "admin" {
-  name = "admin"
+  name = "admin-secret"
 }
 
 # The secret
