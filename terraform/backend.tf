@@ -13,10 +13,11 @@ resource "aws_db_instance" "rds" {
   manage_master_user_password = true
 
   apply_immediately      = true
+  skip_final_snapshot    = true
   multi_az               = true
   db_subnet_group_name   = aws_db_subnet_group.db_subnets.name
   vpc_security_group_ids = [aws_security_group.sg["dbserver"].id]
-  
+
   tags = {
     Name = "gitea-remote-db"
   }
