@@ -19,6 +19,7 @@ locals {
     ssh             = 22
     http            = 80
     https           = 443
+    gitea           = 3000
     postgres        = 5432
     ephemeral_start = 1024
     ephemeral_end   = 65535
@@ -43,8 +44,8 @@ locals {
   security_groups = {
 
     instance = {
-      allow_http     = { from_port = local.port.http, to_port = local.port.http, cidr_ipv4 = local.ip_all }
-      allow_https    = { from_port = local.port.https, to_port = local.port.https, cidr_ipv4 = local.ip_all }
+      allow_http  = { from_port = local.port.http, to_port = local.port.http, cidr_ipv4 = local.ip_all }
+      allow_https = { from_port = local.port.https, to_port = local.port.https, cidr_ipv4 = local.ip_all }
     }
 
     # Admin SG to attach to an instance to enable ssh access
@@ -57,13 +58,19 @@ locals {
       allow_https = { from_port = local.port.https, to_port = local.port.https, cidr_ipv4 = var.main_cidr }
     }
 
+    appserver = {
+      allow_http = {from_port = local.port.http, to_port = local.port.http, cidr_ipv4 = var.main_cidr}
+      allow_gitea = {from_port = local.port.gitea, to_port = local.port.gitea, cidr_ipv4 = var.main_cidr}
+    }
+
     dbserver = {
       allow_db = { from_port = local.port.postgres, to_port = local.port.postgres, cidr_ipv4 = var.main_cidr }
     }
 
     alb = {
       allow_http  = { from_port = local.port.http, to_port = local.port.http, cidr_ipv4 = local.ip_all },
-      allow_https = { from_port = local.port.https, to_port = local.port.https, cidr_ipv4 = local.ip_all }
+      allow_https = { from_port = local.port.https, to_port = local.port.https, cidr_ipv4 = local.ip_all },
+
     }
   }
 }
