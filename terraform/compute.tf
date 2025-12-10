@@ -32,14 +32,13 @@ resource "aws_key_pair" "bastion_host" {
   public_key = local.bastion_pub_key
 }
 
-# # Test instance
+# -*- Test instance -*-
+# ---------------------
 # resource "aws_instance" "test" {
-#   ami                         = data.aws_ami.ubuntu.id
-#   instance_type               = var.instance_type
-#   subnet_id                   = aws_subnet.s["public-subnet-1"].id
-#   key_name                    = aws_key_pair.instance.key_name
-#   user_data                   = file("./userData/appServ.sh")
-#   user_data_replace_on_change = true
+#   ami           = data.aws_ami.ubuntu.id
+#   instance_type = var.instance_type
+#   subnet_id     = aws_subnet.s["public-subnet-1"].id
+#   key_name      = aws_key_pair.instance.key_name
 
 #   vpc_security_group_ids = [
 #     aws_security_group.sg["instance"].id,
@@ -60,7 +59,7 @@ resource "aws_key_pair" "bastion_host" {
 # ------------------------------------------------>
 # resource "aws_ami_from_instance" "custom_ami" {
 #   name               = "Custom AMI"
-#   source_instance_id = aws_instance.vm1.id
+#   source_instance_id = aws_instance.test.id
 #   timeouts {
 #     create = "10m"
 #   }
@@ -69,18 +68,18 @@ resource "aws_key_pair" "bastion_host" {
 # -*- Uncomment to create VM from that AMI -*-
 # ------------------------------------------->
 # resource "aws_instance" "custom_vm" {
-#   ami                         = aws_ami_from_instance.custom_ami.id
-#   instance_type               = var.instance_type
-#   subnet_id                   = aws_subnet.s["public-1"].id
-#   key_name                    = aws_key_pair.vm1.key_name
-#   vpc_security_group_ids      = [aws_security_group.instance_sg.id]
+#   ami                    = aws_ami_from_instance.custom_ami.id
+#   instance_type          = var.instance_type
+#   subnet_id              = aws_subnet.s["public-subnet-1"].id
+#   key_name               = aws_key_pair.instance.key_name
+#   vpc_security_group_ids = [aws_security_group.sg["instance"].id]
 
 #   tags = {
 #     Name = "customVM"
 #   }
 # }
 # output "customVM_public_ip" {
-#   value = aws_instance.custom_vm.public_ip
+#   value       = aws_instance.custom_vm.public_ip
 #   description = "Public IP of custom VM"
 # }
 # <----------------------------------------
