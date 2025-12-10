@@ -1,13 +1,22 @@
-# Instances
-# ---------
+# -----------------
+# -*- Instances -*-
+# -----------------
 
-# Bastion host
+# SSH key pair that can be used for instances
+# Remember to ssh-keygen the key and then reference it in locals.tf!
+resource "aws_key_pair" "instance" {
+  key_name   = var.instance_key_name
+  public_key = local.instance_pub_key
+}
+
+# -*- Bastion host -*-
+# --------------------
 resource "aws_instance" "bastion_host" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = var.instance_type
   subnet_id     = aws_subnet.s["public-subnet-1"].id
   key_name      = aws_key_pair.bastion_host.key_name
-  
+
   vpc_security_group_ids = [
     aws_security_group.sg["instance"].id,
     aws_security_group.sg["admin"].id
@@ -17,9 +26,32 @@ resource "aws_instance" "bastion_host" {
     Name = "bastion-host"
   }
 }
-
 resource "aws_key_pair" "bastion_host" {
   # Configure file path to your pub key in locals.tf
-  key_name   = var.key_name
-  public_key = local.public_key
+  key_name   = var.bastion_key_name
+  public_key = local.bastion_pub_key
 }
+
+# # Test instance
+# resource "aws_instance" "test" {
+#   ami                         = data.aws_ami.ubuntu.id
+#   instance_type               = var.instance_type
+#   subnet_id                   = aws_subnet.s["public-subnet-1"].id
+#   key_name                    = aws_key_pair.instance.key_name
+#   user_data                   = file("./userData/appServ.sh")
+#   user_data_replace_on_change = true
+
+#   vpc_security_group_ids = [
+#     aws_security_group.sg["instance"].id,
+#     aws_security_group.sg["admin"].id,
+#     aws_security_group.sg["appserver"].id
+#   ]
+
+#   tags = {
+#     Name = "test-instance"
+#   }
+# }
+# output "test_instance_pub_ip" {
+#   description = "Public IP of test instance"
+#   value       = aws_instance.test.public_ip
+# }
