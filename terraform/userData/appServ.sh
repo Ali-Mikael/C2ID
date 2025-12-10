@@ -55,7 +55,7 @@ EOF
 systemctl daemon-reload
 systemctl enable gitea --now
 
-# Then you go to >> http://<instance_ip>:3000
+# Then you can use the ALBs endpoint to access gitea. Nginx automatically routes it to port:3000
 # And finish the installation
 
 # When that's done >> SSH into instance && change the perms back to read only

@@ -2,7 +2,7 @@
 
 apt update && apt upgrade -y
 
-apt install -y apt-transport-https fontconfig openjdk-21-jre docker
+apt install -y apt-transport-https fontconfig openjdk-21-jre podman
 
 wget -O /etc/apt/keyrings/jenkins-keyring.asc \
   https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
