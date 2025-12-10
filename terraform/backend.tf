@@ -42,73 +42,40 @@ resource "aws_db_subnet_group" "db_subnets" {
   }
 }
 
-# -*- App server -*-
-# ------------------
-resource "aws_instance" "app_server_1" {
-  ami           = data.aws_ami.ubuntu.id
-  instance_type = var.instance_type
-  subnet_id     = aws_subnet.s["private-app-subnet-1"].id
-  private_ip    = cidrhost(local.subnets.private-app-subnet-1, 100)
-  key_name      = aws_key_pair.instance.key_name
-  user_data     = file("./userData/appServ.sh")
-
-  vpc_security_group_ids = [
-    aws_security_group.sg["appserver"].id,
-    aws_security_group.sg["admin"].id
-  ]
-
-  tags = {
-    Name = "app-server-1"
-  }
-}
-
-# -*- App server 2 -*-
-# --------------------
-resource "aws_instance" "app_server_2" {
-  ami           = data.aws_ami.ubuntu.id
-  instance_type = var.instance_type
-  subnet_id     = aws_subnet.s["private-app-subnet-2"].id
-  private_ip    = cidrhost(local.subnets.private-app-subnet-2, 100)
-  key_name      = aws_key_pair.instance.key_name
-  user_data     = file("./userData/appServ.sh")
-
-  vpc_security_group_ids = [
-    aws_security_group.sg["appserver"].id,
-    aws_security_group.sg["admin"].id
-  ]
-
-  tags = {
-    Name = "app-server-2"
-  }
-}
-
-# -*- CI server -*-
-# -----------------
-resource "aws_instance" "ci_server_1" {
-  ami = data.aws_ami.ubuntu.id
-  instance_type = var.instance_type
-  subnet_id = aws_subnet.s["private-app-subnet-1"].id
-  key_name = aws_key_pair.instance.key_name
-  user_data = file("./userData/ciServ.sh")
-
-  vpc_security_group_ids = [
-    aws_security_group.sg["ciserver"].id,
-    aws_security_group.sg["admin"].id
-  ]
-
-  tags = {
-    Name = "ci-server-1"
-  }
-}
-
-# -*- CI server 2 -*-
+# -*- App servers -*-
 # -------------------
-resource "aws_instance" "ci_server_2" {
-  ami = data.aws_ami.ubuntu.id
+#      (Gitea)
+resource "aws_instance" "app_server" {
+  count         = 2
+  ami           = data.aws_ami.ubuntu.id
   instance_type = var.instance_type
-  subnet_id = aws_subnet.s["private-app-subnet-2"].id
-  key_name = aws_key_pair.instance.key_name
-  user_data = file("./userData/ciServ.sh")
+  subnet_id     = aws_subnet.s["private-app-subnet-${count.index + 1}"].id
+  key_name      = aws_key_pair.instance.key_name
+  user_data     = file("./userData/appServ.sh")
+
+  # Forcing private IP (easier to config reverse proxy) ->
+  private_ip = count.index == 0 ? cidrhost(local.subnets.private-app-subnet-1, 100) : cidrhost(local.subnets.private-app-subnet-2, 100)
+
+  vpc_security_group_ids = [
+    aws_security_group.sg["appserver"].id,
+    aws_security_group.sg["admin"].id
+  ]
+
+  tags = {
+    Name = "app-server-${count.index + 1}"
+  }
+}
+
+# -*- CI servers -*-
+# ------------------
+#     (Jenkins)
+resource "aws_instance" "ci_server" {
+  count         = 2
+  ami           = data.aws_ami.ubuntu.id
+  instance_type = var.instance_type
+  subnet_id     = aws_subnet.s["private-app-subnet-${count.index + 1}"].id
+  key_name      = aws_key_pair.instance.key_name
+  user_data     = file("./userData/ciServ.sh")
 
   vpc_security_group_ids = [
     aws_security_group.sg["ciserver"].id,
@@ -116,6 +83,23 @@ resource "aws_instance" "ci_server_2" {
   ]
 
   tags = {
-    Name = "ci-server-2"
+    Name = "ci-server-${count.index + 1}"
+  }
+}
+
+# -*- Jenkins runners -*-
+# -----------------------
+resource "aws_instance" "jenkins_runner" {
+  count         = 2
+  ami           = data.aws_ami.ubuntu.id
+  instance_type = var.instance_type
+  subnet_id     = aws_subnet.s["private-data-subnet-${count.index + 1}"].id
+  key_name      = aws_key_pair.instance.key_name
+  user_data     = file("./userData/runner.sh")
+
+  vpc_security_group_ids = [aws_security_group.sg["runner"].id]
+
+  tags = {
+    Name = "jenkins-runner-${count.index + 1}"
   }
 }
