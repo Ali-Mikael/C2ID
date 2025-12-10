@@ -1,3 +1,7 @@
+# ------------------
+# -*- Networking -*-
+# ------------------
+
 # VPC
 resource "aws_vpc" "main" {
   cidr_block       = var.main_cidr
@@ -100,29 +104,3 @@ resource "aws_route_table_association" "rta" {
   subnet_id      = each.value.id
   route_table_id = startswith(each.key, "public") ? aws_route_table.public.id : (startswith(each.key, "private") ? aws_route_table.private.id : "")
 }
-
-# # ALB
-# resource "aws_lb" "web_alb" {
-#   name               = "web-alb"
-#   internal           = false
-#   load_balancer_type = "application"
-#   security_groups    = [aws_security_group.sg["alb"].id]
-
-#   subnet_mapping {
-#     subnet_id     = aws_subnet.s["public-subnet-1"].id
-#     allocation_id = aws_eip.alb.id
-#   }
-
-#   tags = {
-#     Name     = "web-tier-alb"
-#     Endpoint = "public-facing"
-#   }
-# }
-# # EIP for ALB
-# resource "aws_eip" "alb" {
-#   domain = "vpc"
-
-#   tags = {
-#     Name = "web-alb-eip"
-#   }
-# }
