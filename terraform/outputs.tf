@@ -1,23 +1,22 @@
-# output "bastion_public_ip" {
-#   value = aws_instance.bastion_host.public_ip
-#   description = "Public IP of bastion host"
-# }
+output "bastion_public_ip" {
+  value = aws_instance.bastion_host.public_ip
+  description = "Public IP of bastion host"
+}
 
-output "test_instance_pub_ip"{
-  description = "Public IP of test instance"
-  value = aws_instance.test.public_ip
+output "webserv_priv_ip" {
+  description = "Web server private IP"
+  value       = aws_instance.web_server.private_ip
+}
+
+output "appserv_priv_ip" {
+  description = "App server private IP"
+  value       = aws_instance.app_server.private_ip
 }
 
 output "rds_hostname" {
   description = "RDS instance hostname"
   value       = aws_db_instance.rds.address
-  sensitive   = true
-}
-
-output "rds_port" {
-  description = "RDS instance port"
-  value       = aws_db_instance.rds.port
-  sensitive   = true
+  # sensitive   = true
 }
 
 output "rds_username" {
