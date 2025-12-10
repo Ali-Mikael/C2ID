@@ -1,3 +1,7 @@
+# --------------------
+# -*- Local values -*-
+# --------------------
+
 # Subnets
 # ------
 locals {
@@ -19,6 +23,7 @@ locals {
     ssh             = 22
     http            = 80
     https           = 443
+    jenkins         = 8080
     gitea           = 3000
     postgres        = 5432
     ephemeral_start = 1024
@@ -59,8 +64,12 @@ locals {
     }
 
     appserver = {
-      allow_http = {from_port = local.port.http, to_port = local.port.http, cidr_ipv4 = var.main_cidr}
-      allow_gitea = {from_port = local.port.gitea, to_port = local.port.gitea, cidr_ipv4 = var.main_cidr}
+      allow_http  = { from_port = local.port.http, to_port = local.port.http, cidr_ipv4 = var.main_cidr }
+      allow_gitea = { from_port = local.port.gitea, to_port = local.port.gitea, cidr_ipv4 = var.main_cidr }
+    }
+
+    ciserver = {
+      allow_jenkins = {from_port = local.port.jenkins, to_port = local.port.jenkins, cidr_ipv4 = var.main_cidr}
     }
 
     dbserver = {
