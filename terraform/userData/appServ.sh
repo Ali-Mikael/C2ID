@@ -1,6 +1,6 @@
 #!/bin/bash
 
-apt update && apt upgrade -y
+apt update
 
 # Get the gitea binaries
 wget -O gitea https://dl.gitea.com/gitea/1.25.2/gitea-1.25.2-linux-amd64

@@ -1,7 +1,6 @@
 #!/bin/bash
 
-apt update && apt upgrade -y
-
+apt update 
 apt install nginx -y
 
 cat << 'EOF' > /etc/nginx/sites-available/gitea.conf
