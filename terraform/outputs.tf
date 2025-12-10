@@ -24,3 +24,8 @@ output "rds_username" {
   value       = aws_db_instance.rds.username
   sensitive   = true
 }
+
+output "lb_dns_name" {
+  description = "ALB DNS name"
+  value = aws_lb.frontend.dns_name
+}
