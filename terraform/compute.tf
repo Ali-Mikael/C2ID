@@ -44,7 +44,6 @@ resource "aws_key_pair" "bastion_host" {
 #   vpc_security_group_ids = [
 #     aws_security_group.sg["instance"].id,
 #     aws_security_group.sg["admin"].id,
-#     aws_security_group.sg["appserver"].id
 #   ]
 
 #   tags = {
