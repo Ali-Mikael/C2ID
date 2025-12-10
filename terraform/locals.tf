@@ -7,6 +7,7 @@
 locals {
   subnets = {
     public-subnet-1       = cidrsubnet(var.main_cidr, 8, 1)
+    public-subnet-2       = cidrsubnet(var.main_cidr, 8, 2)
     private-web-subnet-1  = cidrsubnet(var.main_cidr, 8, 3)
     private-web-subnet-2  = cidrsubnet(var.main_cidr, 8, 4)
     private-app-subnet-1  = cidrsubnet(var.main_cidr, 8, 5)
@@ -48,7 +49,7 @@ locals {
   # my_ip = "xxxx/32"
 
   security_groups = {
-    
+
     instance = {
       allow_http  = { from_port = local.port.http, to_port = local.port.http, cidr_ipv4 = local.ip_all }
       allow_https = { from_port = local.port.https, to_port = local.port.https, cidr_ipv4 = local.ip_all }
@@ -71,7 +72,7 @@ locals {
     }
 
     ciserver = {
-      allow_jenkins = {from_port = local.port.jenkins, to_port = local.port.jenkins, cidr_ipv4 = var.main_cidr}
+      allow_jenkins = { from_port = local.port.jenkins, to_port = local.port.jenkins, cidr_ipv4 = var.main_cidr }
     }
 
     dbserver = {
