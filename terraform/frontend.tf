@@ -28,15 +28,10 @@ resource "aws_lb_target_group" "frontend" {
 }
 
 # ALB target group attachment
-resource "aws_lb_target_group_attachment" "web1" {
+resource "aws_lb_target_group_attachment" "web" {
+  count = 2
   target_group_arn = aws_lb_target_group.frontend.arn
-  target_id        = aws_instance.web_server_1.id
-  port             = local.port.http
-}
-
-resource "aws_lb_target_group_attachment" "web2" {
-  target_group_arn = aws_lb_target_group.frontend.arn
-  target_id        = aws_instance.web_server_2.id
+  target_id        = aws_instance.web_server[count.index].id
   port             = local.port.http
 }
 
@@ -54,10 +49,11 @@ resource "aws_lb_listener" "frontend" {
 
 # -*- Web server -*-
 # ------------------
-resource "aws_instance" "web_server_1" {
+resource "aws_instance" "web_server" {
+  count         = 2
   ami           = data.aws_ami.ubuntu.id
   instance_type = var.instance_type
-  subnet_id     = aws_subnet.s["private-web-subnet-1"].id
+  subnet_id     = aws_subnet.s["private-web-subnet-${count.index + 1}"].id
   key_name      = aws_key_pair.instance.key_name
   user_data     = file("./userData/webServ.sh")
 
@@ -67,25 +63,6 @@ resource "aws_instance" "web_server_1" {
   ]
 
   tags = {
-    Name = "web-server-1"
-  }
-}
-
-# -*- Web server 2 -*-
-# --------------------
-resource "aws_instance" "web_server_2" {
-  ami           = data.aws_ami.ubuntu.id
-  instance_type = var.instance_type
-  subnet_id     = aws_subnet.s["private-web-subnet-2"].id
-  key_name      = aws_key_pair.instance.key_name
-  user_data     = file("./userData/webServ.sh")
-
-  vpc_security_group_ids = [
-    aws_security_group.sg["webserver"].id,
-    aws_security_group.sg["admin"].id
-  ]
-
-  tags = {
-    Name = "web-server-2"
+    Name = "web-server-${count.index + 1}"
   }
 }
