@@ -26,23 +26,25 @@ resource "aws_internet_gateway" "igw" {
 
 # NAT gateway
 resource "aws_nat_gateway" "nat_gw" {
-  subnet_id     = aws_subnet.s["public-subnet-1"].id
-  allocation_id = aws_eip.nat.id
+  count = 2
+  subnet_id     = aws_subnet.s["public-subnet-${count.index + 1}"].id
+  allocation_id = count.index == 0 ? aws_eip.nat[0].id : aws_eip.nat[1].id
   depends_on    = [aws_internet_gateway.igw]
 
   tags = {
-    Name = "main-nat-gw"
+    Name = "nat-gw-${count.index + 1}"
   }
 }
 # EIP for NAT
 # (required for a public nat)
 resource "aws_eip" "nat" {
+  count = 2
   domain = "vpc"
+
   tags = {
-    Name = "main-nat-eip"
+    Name = "nat-eip-${count.index + 1}"
   }
 }
-
 
 # Subnets 
 # -------
@@ -65,7 +67,6 @@ resource "aws_subnet" "s" {
   }
 }
 
-
 # Route Table for public subnets
 # ------------------------------
 resource "aws_route_table" "public" {
@@ -84,16 +85,17 @@ resource "aws_route_table" "public" {
 # Route Table for private subnets 
 # -------------------------------
 resource "aws_route_table" "private" {
+  count = 2
   vpc_id = aws_vpc.main.id
 
   # Internet bound traffic through the nat gw
   route {
     cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.nat_gw.id
+    nat_gateway_id = aws_nat_gateway.nat_gw[count.index].id
   }
 
   tags = {
-    Name = "private-subnet-rt"
+    Name = "private-subnet-rt-${count.index + 1}"
   }
 }
 
@@ -102,5 +104,5 @@ resource "aws_route_table_association" "rta" {
   for_each = aws_subnet.s
 
   subnet_id      = each.value.id
-  route_table_id = startswith(each.key, "public") ? aws_route_table.public.id : (startswith(each.key, "private") ? aws_route_table.private.id : "")
+  route_table_id = startswith(each.key, "public") ? aws_route_table.public.id : (endswith(each.key, "1") ? aws_route_table.private[0].id : aws_route_table.private[1].id)
 }
