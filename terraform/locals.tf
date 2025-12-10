@@ -45,15 +45,17 @@ locals {
 # --------------
 locals {
   ip_all = "0.0.0.0/0"
+  # my_ip = "xxxx/32"
 
   security_groups = {
-
+    
     instance = {
       allow_http  = { from_port = local.port.http, to_port = local.port.http, cidr_ipv4 = local.ip_all }
       allow_https = { from_port = local.port.https, to_port = local.port.https, cidr_ipv4 = local.ip_all }
     }
 
-    # Admin SG to attach to an instance to enable ssh access
+    # Attach to an instance => enable SSH access
+    # Security best practice: cidr_ipv4 = <only your IP/network>
     admin = {
       allow_ssh = { from_port = local.port.ssh, to_port = local.port.ssh, cidr_ipv4 = local.ip_all }
     }
