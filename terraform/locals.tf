@@ -27,6 +27,7 @@ locals {
     jenkins         = 8080
     gitea           = 3000
     postgres        = 5432
+    redis           = 6379
     ephemeral_start = 1024
     ephemeral_end   = 65535
   }
@@ -75,8 +76,16 @@ locals {
       allow_jenkins = { from_port = local.port.jenkins, to_port = local.port.jenkins, cidr_ipv4 = var.main_cidr }
     }
 
+    runner = {
+      allow_ssh_from_vpc = { from_port = local.port.ssh, to_port = local.port.ssh, cidr_ipv4 = var.main_cidr }
+    }
+
     dbserver = {
       allow_db = { from_port = local.port.postgres, to_port = local.port.postgres, cidr_ipv4 = var.main_cidr }
+    }
+
+    redis = {
+      allow_redis = { from_port = local.port.redis, to_port = local.port.redis, cidr_ipv4 = var.main_cidr }
     }
 
     alb = {
