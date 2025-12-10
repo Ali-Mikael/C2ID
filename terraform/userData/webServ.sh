@@ -31,7 +31,7 @@ server {
 }
 EOF
 
-rm /etc/nginx/sites-enabled/default
+unlink /etc/nginx/sites-enabled/default
 ln -s /etc/nginx/sites-available/gitea.conf /etc/nginx/sites-enabled/gitea.conf
 
 nginx -t
