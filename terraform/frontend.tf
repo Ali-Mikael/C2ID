@@ -55,7 +55,9 @@ resource "aws_instance" "web_server" {
   instance_type = var.instance_type
   subnet_id     = aws_subnet.s["private-web-subnet-${count.index + 1}"].id
   key_name      = aws_key_pair.instance.key_name
-  user_data     = file("./userData/webServ.sh")
+  user_data     = templatefile("userData/nginx_init.sh.tftpl", {
+    app_server_private_ip = count.index == 0 ? cidrhost(local.subnets.private-app-subnet-1, 100) : cidrhost(local.subnets.private-app-subnet-2, 100)
+  })
 
   vpc_security_group_ids = [
     aws_security_group.sg["webserver"].id,
