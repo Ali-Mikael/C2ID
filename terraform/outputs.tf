@@ -37,3 +37,8 @@ output "CiServer2" {
   description = "CI server private IP"
   value       = aws_instance.ci_server[1].private_ip
 }
+
+output "dbEndpoint" {
+  description = "Gitea DB (RDS) endpoint"
+  value       = aws_db_instance.rds.endpoint
+}
