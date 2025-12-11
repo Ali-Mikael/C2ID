@@ -47,7 +47,7 @@ locals {
 # --------------
 locals {
   ip_all = "0.0.0.0/0"
-  # my_ip = "xxxx/32"
+  # my_ip = "****/32" # <- Specify your IP/network and use with bastion SG. Principle of least privledge!
 
   security_groups = {
 
@@ -56,10 +56,13 @@ locals {
       allow_https = { from_port = local.port.https, to_port = local.port.https, cidr_ipv4 = local.ip_all }
     }
 
-    # Attach to an instance => enable SSH access
-    # Security best practice: cidr_ipv4 = <only your IP/network>
+    bastion = {
+      allow_ssh   = { from_port = local.port.ssh, to_port = local.port.ssh, cidr_ipv4 = local.ip_all }
+    }
+
+    # Attach to an instance => enable SSH access from within VPC
     admin = {
-      allow_ssh = { from_port = local.port.ssh, to_port = local.port.ssh, cidr_ipv4 = local.ip_all }
+      allow_ssh_from_vpc = { from_port = local.port.ssh, to_port = local.port.ssh, cidr_ipv4 = var.main_cidr }
     }
 
     webserver = {
@@ -74,10 +77,6 @@ locals {
 
     ciserver = {
       allow_jenkins = { from_port = local.port.jenkins, to_port = local.port.jenkins, cidr_ipv4 = var.main_cidr }
-    }
-
-    runner = {
-      allow_ssh_from_vpc = { from_port = local.port.ssh, to_port = local.port.ssh, cidr_ipv4 = var.main_cidr }
     }
 
     dbserver = {
