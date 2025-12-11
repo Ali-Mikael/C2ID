@@ -1,6 +1,6 @@
 # Region
 variable "aws_region" {
-  type = string
+  type    = string
   default = "us-east-1"
 }
 
@@ -18,26 +18,37 @@ variable "az_count" {
 
 # The instance type
 variable "instance_type" {
-  type = string
+  type    = string
   default = "t2.micro"
 }
 
 # RDS instance class
 variable "rds_instance_class" {
-  type = string
+  type    = string
   default = "db.t3.micro"
+}
+
+# Node type for Redis ElastiCache
+variable "redis_node_type" {
+  type    = string
+  default = "cache.t3.micro"
 }
 
 # SSH key name for bastion host
 variable "bastion_key_name" {
-  type = string
-  description = "SSH key name"
-  default = "bh-key"
+  type        = string
+  description = "SSH key name for bastion host"
+  default     = "bh-key"
 }
 
 # SSH key name for instances
 variable "instance_key_name" {
-  type = string
+  type        = string
   description = "SSH key name for instances"
-  default = "instance-key"
+  default     = "instance-key"
+}
+
+variable "redis_engine_version" {
+  type    = string
+  default = "7.0"
 }
