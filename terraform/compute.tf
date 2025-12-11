@@ -1,6 +1,6 @@
-# -----------------
-# -*- Instances -*-
-# -----------------
+# ----------------
+# -*- Instance -*-
+# ----------------
 
 # SSH key pair that can be used for instances
 # Remember to ssh-keygen the key and then reference it in locals.tf!
@@ -18,8 +18,8 @@ resource "aws_instance" "bastion_host" {
   key_name      = aws_key_pair.bastion_host.key_name
 
   vpc_security_group_ids = [
-    aws_security_group.sg["instance"].id,
-    aws_security_group.sg["admin"].id
+    aws_security_group.sg["bastion"].id,
+    aws_security_group.sg["instance"].id # <- For updates and installs. Can be commented out when not needed!
   ]
 
   tags = {
@@ -37,7 +37,7 @@ resource "aws_key_pair" "bastion_host" {
 # resource "aws_instance" "test" {
 #   ami           = data.aws_ami.ubuntu.id
 #   instance_type = var.instance_type
-#   subnet_id     = aws_subnet.s["public-subnet-1"].id
+#   subnet_id     = aws_subnet.s["public-subnet-2"].id
 #   key_name      = aws_key_pair.instance.key_name
 
 #   vpc_security_group_ids = [
@@ -54,32 +54,33 @@ resource "aws_key_pair" "bastion_host" {
 #   value       = aws_instance.test.public_ip
 # }
 
-# -*- Uncomment if you want to create a custom AMI from an instance
-# Just specify the instance ID you want to use! -*- 
-# ------------------------------------------------>
+# -*- Custom AMI -*- 
+# ------------------
 # resource "aws_ami_from_instance" "custom_ami" {
 #   name               = "Custom AMI"
-#   source_instance_id = aws_instance.test.id
+#   source_instance_id = aws_instance.test.id # <- specify target
 #   timeouts {
 #     create = "10m"
 #   }
 # }
 
 # -*- Uncomment to create VM from that AMI -*-
-# ------------------------------------------->
+# -------------------------------------------->
 # resource "aws_instance" "custom_vm" {
 #   ami                    = aws_ami_from_instance.custom_ami.id
 #   instance_type          = var.instance_type
-#   subnet_id              = aws_subnet.s["public-subnet-1"].id
+#   subnet_id              = aws_subnet.s["public-subnet-2"].id
 #   key_name               = aws_key_pair.instance.key_name
-#   vpc_security_group_ids = [aws_security_group.sg["instance"].id]
+#   vpc_security_group_ids = [
+#     aws_security_group.sg["instance"].id,
+#     aws_security_group.sg["bastion"].id
+#     ]
 
 #   tags = {
-#     Name = "customVM"
+#     Name = "custom-ami-vm"
 #   }
 # }
 # output "customVM_public_ip" {
 #   value       = aws_instance.custom_vm.public_ip
 #   description = "Public IP of custom VM"
-# }
-# <----------------------------------------
+# } # <--
