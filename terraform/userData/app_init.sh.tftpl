@@ -1,0 +1,129 @@
+#!/bin/bash
+
+apt update
+
+# Get the gitea binaries
+wget -O gitea https://dl.gitea.com/gitea/1.25.2/gitea-1.25.2-linux-amd64
+chmod +x gitea
+
+# Create a user for gitea to run as
+adduser \
+   --system \
+   --shell /bin/bash \
+   --gecos 'Git Version Control' \
+   --group \
+   --disabled-password \
+   --home /home/git \
+   git
+
+# Create necessary directory structure for gitea
+mkdir -p /var/lib/gitea/{custom,data,log}
+mkdir /var/lib/gitea/data/gitea-repositories
+chown -R git:git /var/lib/gitea/
+chmod -R 750 /var/lib/gitea/
+mkdir /etc/gitea
+chown root:git /etc/gitea
+chmod 770 /etc/gitea
+
+cp gitea /usr/local/bin/gitea
+
+# Create the service
+cat << 'EOF' > /etc/systemd/system/gitea.service
+[Unit]
+Description=Gitea (Git with a cup of tea)
+After=network.target
+
+[Service]
+# IF Repos with lots of files >> causing HTTP 500 error, uncomment next line.
+# LimitNOFILE=524288:524288
+RestartSec=2s
+Type=simple
+User=git
+Group=git
+WorkingDirectory=/var/lib/gitea/
+
+ExecStart=/usr/local/bin/gitea web --config /etc/gitea/app.ini
+Restart=always
+Environment=USER=git HOME=/home/git GITEA_WORK_DIR=/var/lib/gitea
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+cat << 'EOF' > /etc/gitea/app.ini
+[server]
+PROTOCOL = http
+HTTP_ADDR = 0.0.0.0
+HTTP_PORT = 3000
+
+DOMAIN = ${alb_dns}
+ROOT_URL = http://${alb_dns}
+LANDING_PAGE = home
+
+SSH_USER = DOER_USERNAME
+START_SSH_SERVER = false
+SSH_LISTEN_HOST = 0.0.0.0
+SSH_PORT = 22
+SSH_EXPOSE_ANONYMOUS = false
+
+[database]
+DB_TYPE = postgres
+HOST = ${db_endpoint}
+NAME = giteadb
+USER = ${db_user}
+PASSWD = ${db_password}
+# values "disable" "require", or "verify-full"
+SSL_MODE=disable
+
+[security]
+INSTALL_LOCK = true
+SECRET_KEY = ${key}
+INTERNAL_TOKEN = ${token}
+MIN_PASSWORD_LENGTH = 8
+LOGIN_REMEMBER_DAYS = 21
+
+REVERSE_PROXY_TRUSTED_PROXIES = ${web_subnet}
+# USE_PROXY_PROTOCOL = true
+DISABLE_GIT_HOOKS = true
+# "argon2", "pbkdf2", "scrypt" or "bcrypt"
+PASSWORD_HASH_ALGO = pbkdf2 
+
+[log]
+ROOT_PATH = /var/lib/gitea/log
+# Options "Trace", "Debug", "Info", "Warn", "Error"
+LEVEL = Info
+
+[cache]
+ADAPTER = redis
+HOST = redis://${redis_endpoint}/0?pool_size=50&idle_timeout=180s
+ITEM_TTL = 12h
+
+[session]
+PROVIDER = redis
+PROVIDER_CONFIG = redis://${redis_endpoint}/0?pool_size=50&idle_timeout=180s
+
+[qos]
+ENABLED = true
+#Max requests in queue before dropping tail
+MAX_WAITING = 50
+
+[repository]
+ROOT = /var/lib/gitea/data/gitea-repositories
+
+[git.timeout]
+DEFAULT = 360
+MIGRATE = 600
+MIRROR = 300
+CLONE = 300
+PULL = 300
+GC = 60
+EOF
+
+
+# Return permissions to read only
+chmod 750 /etc/gitea
+chmod 0640 /etc/gitea/app.ini
+
+# Reload daemon and enable & start gitea
+systemctl daemon-reload
+systemctl enable gitea --now
