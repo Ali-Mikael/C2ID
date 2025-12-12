@@ -127,7 +127,8 @@ locals {
 # -------
 locals {
   buckets = {
-    private = "private-bucket-${random_id.bucket.hex}"
+    artefact = "artefact-bucket-${random_id.bucket.hex}"
+    repo     = "repo-bucket-${random_id.bucket.hex}"
   }
 }
 
