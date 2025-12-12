@@ -137,12 +137,14 @@ resource "aws_elasticache_cluster" "app" {
   parameter_group_name = "default.redis7"
   node_type            = var.redis_node_type
   engine_version       = var.redis_engine_version
-  num_cache_nodes      = 1 # <- A must for Redis
+  num_cache_nodes      = 1
   apply_immediately    = true
 
   port               = local.port.redis
   security_group_ids = [aws_security_group.sg["cacheserver"].id]
   subnet_group_name  = aws_elasticache_subnet_group.sg.id
+
+  depends_on = [aws_security_group.sg["cacheserver"]] # For some reason only this attaches the SG properly for me (even though the reference in the resource should be enough..)
 }
 
 # Subnet group for elasticache
