@@ -28,6 +28,7 @@ variable "rds_instance_class" {
   default = "db.t3.micro"
 }
 
+# DataBase User
 variable "db_user" {
   type = string
   sensitive = true
