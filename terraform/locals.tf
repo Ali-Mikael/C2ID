@@ -130,3 +130,8 @@ locals {
     private = "private-bucket-${random_id.bucket.hex}"
   }
 }
+
+# DB user password
+locals {
+  db_pword = random_password.db.result
+}
