@@ -107,3 +107,17 @@ resource "aws_route_table_association" "rta" {
   subnet_id      = each.value.id
   route_table_id = startswith(each.key, "public") ? aws_route_table.public.id : (endswith(each.key, "1") ? aws_route_table.private[0].id : aws_route_table.private[1].id)
 }
+
+# VPC Endpoint for S3
+# -------------------
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id            = aws_vpc.main.id
+  vpc_endpoint_type = "Gateway"
+
+  route_table_ids = [aws_route_table.private[0].id, aws_route_table.private[1].id]
+  service_name = "com.amazonaws.${var.aws_region}.s3"
+
+  tags = {
+    Name = "s3-vpc-endpoint"
+  }
+}
