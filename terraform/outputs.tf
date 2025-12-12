@@ -3,9 +3,9 @@ output "BastionHost" {
   description = "Public IP of bastion host"
 }
 
-output "FrontEndALB" {
-  description = "ALB DNS name"
-  value       = aws_lb.frontend.dns_name
+output "LBdns" {
+  description = "LB DNS name"
+  value       = aws_elb.frontend.dns_name
 }
 
 output "WebServer1" {
