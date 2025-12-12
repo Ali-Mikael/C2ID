@@ -82,7 +82,6 @@ resource "aws_instance" "jenkins_runner" {
   user_data     = file("./userData/runner.sh")
 
   # Jenkins controller connects via SSH, so the admin SG will suffice. 
-  # The SG only accepts SSH connections from within the VPC already.
   vpc_security_group_ids = [aws_security_group.sg["admin"].id]
 
   tags = {
@@ -98,21 +97,33 @@ resource "aws_db_instance" "rds" {
   allocated_storage     = 40
   max_allocated_storage = 80
 
-  engine         = data.aws_rds_engine_version.postgres.engine
-  engine_version = data.aws_rds_engine_version.postgres.version
-  instance_class = var.rds_instance_class
+  engine               = data.aws_rds_engine_version.postgres.engine
+  engine_version       = data.aws_rds_engine_version.postgres.version
+  instance_class       = var.rds_instance_class
+  parameter_group_name = aws_db_parameter_group.app.name
+  apply_immediately    = true
+  skip_final_snapshot  = true
 
   username = var.db_user
   password = random_password.db.result
 
-  apply_immediately      = true
-  skip_final_snapshot    = true
   multi_az               = true
   db_subnet_group_name   = aws_db_subnet_group.db_subnets.name
   vpc_security_group_ids = [aws_security_group.sg["dbserver"].id]
 
   tags = {
     Name = "gitea-remote-db"
+  }
+}
+
+# Manage RDS configs using parameter group
+resource "aws_db_parameter_group" "app" {
+  name   = "gitea-remote-db-pg"
+  family = "postgres18"
+
+  parameter {
+    name  = "rds.force_ssl"
+    value = 0
   }
 }
 
@@ -144,7 +155,7 @@ resource "aws_elasticache_cluster" "app" {
   security_group_ids = [aws_security_group.sg["cacheserver"].id]
   subnet_group_name  = aws_elasticache_subnet_group.sg.id
 
-  depends_on = [aws_security_group.sg["cacheserver"]] # For some reason only this attaches the SG properly for me (even though the reference in the resource should be enough..)
+  depends_on = [aws_security_group.sg["cacheserver"]] # For some reason only this attaches the SG properly (even though we're referencing it..)
 }
 
 # Subnet group for elasticache
