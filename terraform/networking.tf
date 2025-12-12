@@ -64,6 +64,7 @@ resource "aws_subnet" "s" {
 
   tags = {
     Name = "${each.key}"
+    Tier = startswith(each.key, "public") ? "public" : "private"
   }
 }
 
