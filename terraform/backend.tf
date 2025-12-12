@@ -13,16 +13,13 @@ resource "aws_instance" "app_server" {
   subnet_id     = aws_subnet.s["private-app-subnet-${count.index + 1}"].id
   key_name      = aws_key_pair.instance.key_name
   user_data     = file("./userData/gitea_init.sh")
-  #   templatefile("userData/app_init.sh.tftpl", { # <- As soon as the script starts working we will revert to this. In the mean time the OG will do!
-  #     alb_dns        = "${aws_elb.frontend.dns_name}",
-  #     db_endpoint    = "${aws_db_instance.rds.endpoint}",
-  #     db_password    = "${random_password.db.result}",
-  #     db_user        = "${var.db_user}",
-  #     redis_endpoint = "${aws_elasticache_cluster.app.cache_nodes.0.address}:${aws_elasticache_cluster.app.cache_nodes.0.port}",
-  #     key            = "${random_bytes.key.base64}",
-  #     token          = "${random_bytes.token.base64}",
-  #     web_subnet     = count.index == 0 ? "${local.subnets.private-web-subnet-1}" : "${local.subnets.private-web-subnet-2}"
-  #   })
+    # templatefile("userData/app_init.sh.tftpl", {  <<-- not losing hope on this, so leaving it here until I get it fixed
+    #   alb_dns        = "${aws_elb.frontend.dns_name}",
+    #   db_endpoint    = "${aws_db_instance.rds.endpoint}",
+    #   db_password    = "${random_password.db.result}",
+    #   db_user        = "${var.db_user}",
+    #   redis_endpoint = "${aws_elasticache_cluster.app.cache_nodes.0.address}:${aws_elasticache_cluster.app.cache_nodes.0.port}"
+    # })
 
   # Forcing private IP makes configuring Nginx easier by way of init script
   private_ip = count.index == 0 ? cidrhost(local.subnets.private-app-subnet-1, 100) : cidrhost(local.subnets.private-app-subnet-2, 100)
@@ -35,19 +32,6 @@ resource "aws_instance" "app_server" {
   tags = {
     Name = "app-server-${count.index + 1}"
   }
-}
-
-# Gitea secret_key
-resource "random_bytes" "key" {
-  length = 128
-}
-# Gitea internal_token
-resource "random_bytes" "token" {
-  length = 128
-}
-#DB psswd
-resource "random_password" "db" {
-  length = 12
 }
 
 # -*- CI Servers -*-
@@ -114,6 +98,14 @@ resource "aws_db_instance" "rds" {
   tags = {
     Name = "gitea-remote-db"
   }
+}
+
+#DB psswd
+resource "random_password" "db" {
+  length = 20
+  override_special = "!-_(){}?"
+  min_lower = 5
+  min_upper = 5
 }
 
 # Manage RDS configs using parameter group
