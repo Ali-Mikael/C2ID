@@ -22,6 +22,18 @@ variable "instance_type" {
   default = "t2.micro"
 }
 
+# Node type for Redis ElastiCache
+variable "redis_node_type" {
+  type    = string
+  default = "cache.t3.micro"
+}
+
+# Engine version for Redis
+variable "redis_engine_version" {
+  type    = string
+  default = "7.0"
+}
+
 # RDS instance class
 variable "rds_instance_class" {
   type    = string
@@ -33,12 +45,6 @@ variable "db_user" {
   type = string
   sensitive = true
   default = "gitea"
-}
-
-# Node type for Redis ElastiCache
-variable "redis_node_type" {
-  type    = string
-  default = "cache.t3.micro"
 }
 
 # SSH key name for bastion host
@@ -53,9 +59,4 @@ variable "instance_key_name" {
   type        = string
   description = "SSH key name for instances"
   default     = "instance-key"
-}
-
-variable "redis_engine_version" {
-  type    = string
-  default = "7.0"
 }
