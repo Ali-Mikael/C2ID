@@ -28,6 +28,12 @@ variable "rds_instance_class" {
   default = "db.t3.micro"
 }
 
+variable "db_user" {
+  type = string
+  sensitive = true
+  default = "gitea"
+}
+
 # Node type for Redis ElastiCache
 variable "redis_node_type" {
   type    = string
