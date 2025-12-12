@@ -58,9 +58,9 @@ resource "aws_security_group" "sg" {
 
 # Ingress rules
 resource "aws_vpc_security_group_ingress_rule" "ingress_rules" {
-  for_each = tomap({
-    for rule in local.sg_rules : "${rule.sg}-${rule.from_port}" => rule
-  })
+  for_each = {
+    for r in local.sg_rules : "${r.sg}-${r.from_port}-${replace("${r.ip}", "/", "_")}" => r
+  }
 
   security_group_id = aws_security_group.sg[each.value.sg].id
   from_port         = each.value.from_port
