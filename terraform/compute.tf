@@ -19,7 +19,6 @@ resource "aws_instance" "bastion_host" {
 
   vpc_security_group_ids = [
     aws_security_group.sg["bastion"].id,
-    aws_security_group.sg["instance"].id # <- For updates and installs. Can be commented out when not needed!
   ]
 
   tags = {
@@ -41,7 +40,7 @@ resource "aws_key_pair" "bastion_host" {
 #   key_name      = aws_key_pair.instance.key_name
 
 #   vpc_security_group_ids = [
-#     aws_security_group.sg["instance"].id,
+#     aws_security_group.sg["test"].id,
 #     aws_security_group.sg["admin"].id,
 #   ]
 
@@ -72,7 +71,7 @@ resource "aws_key_pair" "bastion_host" {
 #   subnet_id              = aws_subnet.s["public-subnet-2"].id
 #   key_name               = aws_key_pair.instance.key_name
 #   vpc_security_group_ids = [
-#     aws_security_group.sg["instance"].id,
+#     aws_security_group.sg["test"].id,
 #     aws_security_group.sg["bastion"].id
 #     ]
 
