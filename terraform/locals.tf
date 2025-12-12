@@ -5,15 +5,20 @@
 # Subnets
 # ------
 locals {
+  subnet_names = [
+    "public-subnet-1",
+    "public-subnet-2",
+    "private-web-subnet-1",
+    "private-web-subnet-2",
+    "private-app-subnet-1",
+    "private-app-subnet-2",
+    "private-data-subnet-1",
+    "private-data-subnet-2"
+  ]
+
   subnets = {
-    public-subnet-1       = cidrsubnet(var.main_cidr, 8, 1)
-    public-subnet-2       = cidrsubnet(var.main_cidr, 8, 2)
-    private-web-subnet-1  = cidrsubnet(var.main_cidr, 8, 3)
-    private-web-subnet-2  = cidrsubnet(var.main_cidr, 8, 4)
-    private-app-subnet-1  = cidrsubnet(var.main_cidr, 8, 5)
-    private-app-subnet-2  = cidrsubnet(var.main_cidr, 8, 6)
-    private-data-subnet-1 = cidrsubnet(var.main_cidr, 8, 7)
-    private-data-subnet-2 = cidrsubnet(var.main_cidr, 8, 8)
+    for idx, name in local.subnet_names :
+    name => cidrsubnet(var.main_cidr, 8, idx + 1)
   }
 }
 
@@ -47,70 +52,101 @@ locals {
 # --------------
 locals {
   ip_all = "0.0.0.0/0"
-  # my_ip = "..../." # <- Specify your IP and use with Bastion SG. Principle of least privledge!
 
-  # NOTE: -Potato_version_1.deluxe-
-  # Very rigid design and doesn't scale well. Also hard to maintain.  
-  # Will fix this when I get the time
-  security_groups = {
-    test = {
-      allow_http  = { from_port = local.port.http, to_port = local.port.http, cidr_ipv4 = local.ip_all }
-      allow_https = { from_port = local.port.https, to_port = local.port.https, cidr_ipv4 = local.ip_all }
-    }
-
-    bastion = {
-      allow_ssh = { from_port = local.port.ssh, to_port = local.port.ssh, cidr_ipv4 = local.ip_all }
-    }
-
-    # Attach to an instance => enable SSH access from within VPC
-    admin = {
-      allow_ssh_from_bastion = { from_port = local.port.ssh, to_port = local.port.ssh, cidr_ipv4 = local.subnets.public-subnet-1 }
+  sg_definitions = {
+    lb = {
+      ports = [
+        { from = local.port.http, to = local.port.http },
+        { from = local.port.https, to = local.port.https }
+      ]
+      sources = [
+        local.ip_all
+      ]
     }
 
     webserver = {
-      allow_http_pub1  = { from_port = local.port.http, to_port = local.port.http, cidr_ipv4 = local.subnets.public-subnet-1 },
-      allow_http_pub2  = { from_port = local.port.http, to_port = local.port.http, cidr_ipv4 = local.subnets.public-subnet-2 },
-      allow_https_pub1 = { from_port = local.port.https, to_port = local.port.https, cidr_ipv4 = local.subnets.public-subnet-1 }
-      allow_https_pub2 = { from_port = local.port.https, to_port = local.port.https, cidr_ipv4 = local.subnets.public-subnet-2 }
+      ports = [
+        { from = local.port.http, to = local.port.http },
+        { from = local.port.https, to = local.port.https }
+      ]
+      sources = [
+        local.subnets.public-subnet-1,
+        local.subnets.public-subnet-2
+      ]
     }
 
     appserver = {
-      allow_http_web1  = { from_port = local.port.http, to_port = local.port.http, cidr_ipv4 = local.subnets.private-web-subnet-1 }
-      allow_http_web2  = { from_port = local.port.http, to_port = local.port.http, cidr_ipv4 = local.subnets.private-web-subnet-2 }
-      allow_gitea_web1 = { from_port = local.port.gitea, to_port = local.port.gitea, cidr_ipv4 = local.subnets.private-web-subnet-1 }
-      allow_gitea_web2 = { from_port = local.port.gitea, to_port = local.port.gitea, cidr_ipv4 = local.subnets.private-web-subnet-2 }
-    }
-
-    ciserver = {
-      allow_jenkins_app1 = { from_port = local.port.jenkins, to_port = local.port.jenkins, cidr_ipv4 = local.subnets.private-app-subnet-1 }
-      allow_jenkins_app2 = { from_port = local.port.jenkins, to_port = local.port.jenkins, cidr_ipv4 = local.subnets.private-app-subnet-2 }
+      ports = [
+        { from = local.port.http, to = local.port.http },
+        { from = local.port.gitea, to = local.port.gitea }
+      ]
+      sources = [
+        local.subnets.private-web-subnet-1,
+        local.subnets.private-web-subnet-2
+      ]
     }
 
     dbserver = {
-      allow_db_app1 = { from_port = local.port.postgres, to_port = local.port.postgres, cidr_ipv4 = local.subnets.private-app-subnet-1 }
-      allow_db_app2 = { from_port = local.port.postgres, to_port = local.port.postgres, cidr_ipv4 = local.subnets.private-app-subnet-2 }
+      ports = [
+        { from = local.port.postgres, to = local.port.postgres }
+      ]
+      sources = [
+        local.subnets.private-app-subnet-1,
+        local.subnets.private-app-subnet-2
+      ]
     }
 
     cacheserver = {
-      allow_redis_app1 = { from_port = local.port.redis, to_port = local.port.redis, cidr_ipv4 = local.subnets.private-app-subnet-1 }
-      allow_redis_app2 = { from_port = local.port.redis, to_port = local.port.redis, cidr_ipv4 = local.subnets.private-app-subnet-2 }
+      ports = [
+        { from = local.port.redis, to = local.port.redis }
+      ]
+      sources = [
+        local.subnets.private-app-subnet-1,
+        local.subnets.private-app-subnet-2
+      ]
     }
 
-    lb = {
-      allow_http  = { from_port = local.port.http, to_port = local.port.http, cidr_ipv4 = local.ip_all },
-      allow_https = { from_port = local.port.https, to_port = local.port.https, cidr_ipv4 = local.ip_all },
+    ciserver = {
+      ports = [
+        { from = local.port.jenkins, to = local.port.jenkins }
+      ]
+      sources = [
+        local.subnets.private-app-subnet-1,
+        local.subnets.private-app-subnet-2
+      ]
+    }
+
+    bastion = {
+      ports = [
+        { from = local.port.ssh, to = local.port.ssh }
+      ]
+      sources = [
+        local.ip_all # <- specify your own IP or network for prod grade!
+      ]
+    }
+
+    admin = {
+      ports = [
+        { from = local.port.ssh, to = local.port.ssh }
+      ]
+      sources = [
+        local.subnets.public-subnet-1,
+        local.subnets.public-subnet-2
+      ]
     }
   }
 
-  # Preparing SGs for rule creation
+  # Preparing for rule creation
   sg_rules = flatten([
-    for sg, rules in local.security_groups : [
-      for rule, value in rules : {
-        sg        = sg
-        from_port = value.from_port
-        to_port   = value.to_port
-        ip        = value.cidr_ipv4
-      }
+    for sg_name, sg in local.sg_definitions : [
+      for p in sg.ports : [
+        for src in sg.sources : {
+          sg        = sg_name
+          from_port = p.from
+          to_port   = p.to
+          ip        = src
+        }
+      ]
     ]
   ])
 }

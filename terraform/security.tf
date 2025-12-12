@@ -42,7 +42,7 @@ resource "aws_network_acl" "nacl" {
 # Security Groups
 # ---------------
 resource "aws_security_group" "sg" {
-  for_each = local.security_groups
+  for_each = tomap(local.sg_definitions)
 
   name        = "${each.key}-sg"
   description = "Security group for ${each.key}"
