@@ -1,7 +1,13 @@
-## What is?
-Self-hosted **CI/CD platform** in the AWS cloud, built and managed using *Terraform*.  
+## Self-hosted **CI/CD platform** 
+Built in the cloud using the AWS provider.     
+Crafted and managed utilizing *Terraform*.      
 
-## How to use?
-**Clone repo** -> Navigate to `/terraform` directory -> **Initialize** `$ terraform init` > **Create infrastructure** `$ terraform apply` -> **Enjoy!**    
+## How to set it up?
+**Clone repo** ->    
+**Navigate** to `/terraform` directory ->     
+**Initialize** `$ terraform init` ->     
+**Create infrastructure** `$ terraform apply` -> **Enjoy!**        
     
-note: Tweak the configs to suit your needs (networking, SSH keys etc..).
+### Note:
+Tweak the configs to suit your own needs (networking, security, DB options etc..)     
+IaC files provide a robust setup with built-in default values, if nothing else, atleast the SSH.pub/key/path you need to change yourself, if you want to SSH into bastion host or other resources.
