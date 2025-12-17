@@ -116,6 +116,16 @@ locals {
       ]
     }
 
+    cirunner = {
+      ports = [
+        { from = local.port.ssh, to = local.port.ssh }
+      ]
+      sources = [
+        local.subnets.private-app-subnet-1,
+        local.subnets.private-app-subnet-2
+      ]
+    }
+
     bastion = {
       ports = [
         { from = local.port.ssh, to = local.port.ssh }
