@@ -65,8 +65,7 @@ resource "aws_instance" "jenkins_runner" {
   key_name      = aws_key_pair.instance.key_name
   user_data     = file("./userData/runner.sh")
 
-  # Jenkins controller connects via SSH, so the admin SG will suffice. 
-  vpc_security_group_ids = [aws_security_group.sg["admin"].id]
+  vpc_security_group_ids = [aws_security_group.sg["cirunner"].id]
 
   tags = {
     Name = "jenkins-runner-${count.index + 1}"
