@@ -12,19 +12,19 @@ Hosted in the AWS cloud.
 > Then -->    
      
 ### 1. Clone repository:
-```
+```bash
 $ git clone depth=1 https://github.com/Ali-Mikael/C2ID.git
 ```    
-#### 2. Navigate to the `/terraform` directory      
-#### 3. Initialize Terraform:
-```
+### 2. Navigate to the `/terraform` directory      
+### 3. Initialize Terraform:
+```bash
 $ terraform init
 ```    
-#### 4. Create and provision infrastructure:
-```
+### 4. Create and provision infrastructure:
+```bash
 $ terraform apply -auto-approve
 ```     
-#### 5. Have a cup of tea/coffee and let Terraform work its magic!     
+### 5. Have a cup of tea/coffee and let Terraform work its magic!     
 
     
 ## Note:
@@ -55,7 +55,7 @@ The Terraform template **does** provide a robust setup with built-in default val
 
 
 # WorkFlow
-Client pushes code to Gitea -> Repository data is stored in S3 bucket, metadata in PostgreSQL RDS.     
-Gitea triggers Jenkins via webhooks when new commits arrive -> Jenkins orchestrates runners to execute test/build pipelines ->      
+Client pushes code to Gitea -> Repository data is stored in an S3 bucket, metadata in PostgreSQL RDS.     
+Gitea triggers Jenkins via webhooks when new commits arrive -> Jenkins orchestrates agents to execute test/build pipelines.    
 Build artefacts are uploaded to an S3 bucket. The bucket is accessed through a VPC endpoint.     
-Redis ElastiCache improves Gitea performance by caching data and storing user sessions in memory.     
+Redis ElastiCache improves Gitea performance by caching data and storing user sessions in memory.
