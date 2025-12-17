@@ -51,4 +51,11 @@ The Terraform template **does** provide a robust setup with built-in default val
 
 
 # Diagram
-<img width="4182" height="2140" alt="CICD drawio" src="https://github.com/user-attachments/assets/4d4a0fef-52a6-4f6b-aaa9-ca509ae7629f" />
+<img width="4182" height="1475" alt="CICD drawio" src="https://github.com/user-attachments/assets/98c82647-5c5e-4b58-8d79-fb23e8ef501c" />
+
+
+# WorkFlow
+Client pushes code to Gitea -> Repository data is stored in S3 bucket, metadata in PostgreSQL RDS.     
+Gitea triggers Jenkins via webhooks when new commits arrive -> Jenkins orchestrates runners to execute test/build pipelines ->      
+Build artefacts are uploaded to an S3 bucket. The bucket is accessed through a VPC endpoint.     
+Redis ElastiCache improves Gitea performance by caching data and storing user sessions in memory.     
